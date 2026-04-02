@@ -21,34 +21,15 @@ jobs:
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
-
-          # Clone HF Space to temp location
-          cd /tmp
-          rm -rf hf_space
-          git clone https://user:${HF_TOKEN}@huggingface.co/spaces/ashishsankhua/Booking_Advisor_Voice_Agent hf_space
           
-          # Clean everything except .git
-          cd hf_space
-          find . -not -path "./.git/*" -not -path "./.git" -delete 2>/dev/null || true
+          # Remove sensitive files before syncing
+          rm -f .env
+          rm -f config/google-credentials.json 2>/dev/null || true
+          rm -f config/google-token.json 2>/dev/null || true
+          rm -rf __pycache__ logs/ .cache 2>/dev/null || true
           
-          # Copy ALL files from GitHub repo (excluding secrets)
-          cd $GITHUB_WORKSPACE
-          rsync -av --no-perms \
-            --exclude='.git' \
-            --exclude='.gitattributes' \
-            --exclude='.env' \
-            --exclude='config/google-credentials.json' \
-            --exclude='config/google-token.json' \
-            --exclude='__pycache__' \
-            --exclude='*.pyc' \
-            --exclude='.DS_Store' \
-            --exclude='logs/' \
-            --exclude='.cache' \
-            ./ /tmp/hf_space/
-
-          # Commit and push to HF
-          cd /tmp/hf_space
-          git add -A
-          git status
-          git diff --staged --quiet || git commit -m "Sync from GitHub: ${{ github.sha }}"
-          git push origin main
+          # Add HF remote and force push
+          git remote add hf https://user:${HF_TOKEN}@huggingface.co/spaces/ashishsankhua/Booking_Advisor_Voice_Agent
+          git push hf main --force
+          
+          echo "✅ Sync complete - all files pushed to https://huggingface.co/spaces/ashishsankhua/Booking_Advisor_Voice_Agent"
