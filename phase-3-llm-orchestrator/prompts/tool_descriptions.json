@@ -1,0 +1,62 @@
+{
+  "mcp_tools": [
+    {
+      "name": "mcp_calendar.get_availability",
+      "description": "Get available advisor slots for a specific date",
+      "parameters": {
+        "date": "Date in YYYY-MM-DD format (required)",
+        "time_preference": "Optional: 'morning', 'afternoon', or 'evening'"
+      },
+      "returns": "List of available slots with id, datetime, duration"
+    },
+    {
+      "name": "mcp_calendar.create_hold",
+      "description": "Create a tentative hold on a slot",
+      "parameters": {
+        "topic": "The booking topic",
+        "slot_id": "ID of the slot to hold",
+        "booking_code": "Unique booking code (e.g., KY-1234)"
+      },
+      "returns": "Success status and hold details"
+    },
+    {
+      "name": "mcp_calendar.cancel_hold",
+      "description": "Cancel an existing hold",
+      "parameters": {
+        "booking_code": "The booking code to cancel"
+      },
+      "returns": "Success status"
+    },
+    {
+      "name": "mcp_calendar.reschedule_hold",
+      "description": "Reschedule a hold to a new slot",
+      "parameters": {
+        "booking_code": "Existing booking code",
+        "new_slot_id": "New slot ID to move to"
+      },
+      "returns": "Success status and new hold details"
+    },
+    {
+      "name": "mcp_notes.append_pre_booking_note",
+      "description": "Append a note to the advisor pre-bookings log",
+      "parameters": {
+        "booking_code": "The booking code",
+        "topic": "Topic of the booking",
+        "slot_datetime": "Scheduled date and time",
+        "notes": "Additional notes (optional)"
+      },
+      "returns": "Success status"
+    },
+    {
+      "name": "mcp_email.draft_advisor_email",
+      "description": "Create advisor notification email draft",
+      "parameters": {
+        "booking_code": "The booking code",
+        "topic": "Topic of the booking",
+        "slot_datetime": "Scheduled date and time",
+        "additional_notes": "Additional notes for advisor (optional)"
+      },
+      "returns": "Success status and draft ID"
+    }
+  ]
+}

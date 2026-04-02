@@ -1,0 +1,70 @@
+# ── Secrets & credentials ─────────────────────────────────────────────────────
+.env
+config/google-credentials.json
+config/google-token.json
+config/google-token.json.bak
+phase-2-mcp-tools/config/
+*.pem
+*.key
+*.p12
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+.env.local
+
+# ── HuggingFace model cache ───────────────────────────────────────────────────
+.cache/
+models/
+*.bin
+*.safetensors
+*.ot
+*.onnx
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+logs/*.log
+logs/*.json
+phase-2-mcp-tools/logs/
+phase-2-mcp-tools/server/logs/
+*.log
+
+# ── Node (legacy frontend build artifacts) ───────────────────────────────────
+node_modules/
+phase-4-integration/frontend/node_modules/
+package-lock.json
+yarn.lock
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/settings.json
+.cursor/
+.idea/
+*.iml
+
+# ── Test artifacts ────────────────────────────────────────────────────────────
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ── Data (keep structure, not content) ───────────────────────────────────────
+phase-2-mcp-tools/data/email_drafts.json
+phase-2-mcp-tools/data/advisor_pre_bookings.txt
+phase-4-integration/data/waitlist.json
+phase-4-integration/frontend/node_modules/

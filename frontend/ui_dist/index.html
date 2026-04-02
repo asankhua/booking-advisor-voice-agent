@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AdvisorAI — Voice Booking</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{font-family:'Inter',sans-serif;background:#f8fafc;min-height:100vh;display:flex;flex-direction:column;}
+  main-wrap{flex:1;}
+  .msg-in{animation:fadeUp .25s ease;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .pulse-ring{animation:pring 1.4s ease infinite;}
+  @keyframes pring{0%{box-shadow:0 0 0 0 rgba(99,102,241,.5)}70%{box-shadow:0 0 0 10px rgba(99,102,241,0)}100%{box-shadow:0 0 0 0 rgba(99,102,241,0)}}
+  .dot-blink span{animation:db 1.4s infinite both;}
+  .dot-blink span:nth-child(2){animation-delay:.2s}
+  .dot-blink span:nth-child(3){animation-delay:.4s}
+  @keyframes db{0%,100%{opacity:.2}50%{opacity:1}}
+  .pipe-step{transition:all .3s;}
+  #chatBox::-webkit-scrollbar{width:4px}
+  #chatBox::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:4px}
+  .rec-wave span{display:inline-block;width:3px;border-radius:2px;background:#6366f1;animation:wave .8s ease-in-out infinite;}
+  .rec-wave span:nth-child(2){animation-delay:.1s;height:14px}
+  .rec-wave span:nth-child(3){animation-delay:.2s;height:20px}
+  .rec-wave span:nth-child(4){animation-delay:.3s;height:14px}
+  .rec-wave span:nth-child(5){animation-delay:.4s;height:8px}
+  @keyframes wave{0%,100%{transform:scaleY(.5)}50%{transform:scaleY(1)}}
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+<div class="flex-1">
+
+
+
+<!-- HERO -->
+<div class="bg-gradient-to-br from-indigo-50 via-violet-50 to-purple-50 border-b border-gray-100 py-5 px-6 text-center relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(99,102,241,.07),transparent)"></div>
+  <div class="relative max-w-3xl mx-auto">
+    <div class="inline-flex items-center gap-2 bg-white border border-violet-200 rounded-full px-3 py-1 shadow-sm mb-2">
+      <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+      <span class="text-xs font-bold text-indigo-700 tracking-wide uppercase">AI-Powered Financial Advisory</span>
+    </div>
+    <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">Booking Advisor Voice Agent</h1>
+    <p class="text-gray-500 text-sm mb-2 whitespace-nowrap overflow-hidden text-ellipsis">Speak or type naturally — AI schedules your consultation, creates a calendar event &amp; sends confirmation.</p>
+    <div class="flex flex-wrap justify-center gap-4 text-xs text-gray-500 mb-1">
+      <span class="flex items-center gap-1"><span class="text-emerald-500 font-bold">✓</span> No PII on call</span>
+      <span class="flex items-center gap-1"><span class="text-emerald-500 font-bold">✓</span> Google Calendar + Meet</span>
+      <span class="flex items-center gap-1"><span class="text-emerald-500 font-bold">✓</span> Instant confirmation</span>
+      <span class="flex items-center gap-1"><span class="text-emerald-500 font-bold">✓</span> SEBI compliant</span>
+    </div>
+    <div class="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
+      <span class="text-gray-400 font-semibold uppercase tracking-wide text-xs mr-1">Topics:</span>
+      <span class="flex items-center gap-1"><span class="text-indigo-500 font-bold">●</span> KYC / Onboarding</span>
+      <span class="flex items-center gap-1"><span class="text-indigo-500 font-bold">●</span> SIP / Mandates</span>
+      <span class="flex items-center gap-1"><span class="text-indigo-500 font-bold">●</span> Statements / Tax Docs</span>
+      <span class="flex items-center gap-1"><span class="text-indigo-500 font-bold">●</span> Withdrawals</span>
+      <span class="flex items-center gap-1"><span class="text-indigo-500 font-bold">●</span> Account Changes</span>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- PIPELINE STATUS -->
+<div class="bg-white border-b border-gray-100 px-6 py-2">
+  <div class="max-w-7xl mx-auto">
+    <!-- thin progress bar -->
+    <div class="h-1 bg-gray-100 rounded-full overflow-hidden mb-2">
+      <div id="pipeBar" class="h-full rounded-full transition-all duration-500 ease-out" style="width:0%;background:linear-gradient(90deg,#f59e0b,#10b981)"></div>
+    </div>
+    <!-- dots + labels row -->
+    <div class="flex items-center gap-4">
+      <span class="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Pipeline</span>
+      <div class="flex items-center gap-3 flex-wrap flex-1">
+        <div class="flex items-center gap-1.5"><span id="ps-vad"  class="w-2.5 h-2.5 rounded-full bg-gray-200 transition-all duration-300"></span><span class="text-xs text-gray-500 font-medium">VAD</span></div>
+        <span class="text-gray-200 text-xs">›</span>
+        <div class="flex items-center gap-1.5"><span id="ps-stt"  class="w-2.5 h-2.5 rounded-full bg-gray-200 transition-all duration-300"></span><span class="text-xs text-gray-500 font-medium">Whisper</span></div>
+        <span class="text-gray-200 text-xs">›</span>
+        <div class="flex items-center gap-1.5"><span id="ps-llm"  class="w-2.5 h-2.5 rounded-full bg-gray-200 transition-all duration-300"></span><span class="text-xs text-gray-500 font-medium">LLM</span></div>
+        <span class="text-gray-200 text-xs">›</span>
+        <div class="flex items-center gap-1.5"><span id="ps-tts"  class="w-2.5 h-2.5 rounded-full bg-gray-200 transition-all duration-300"></span><span class="text-xs text-gray-500 font-medium">TTS</span></div>
+        <span class="text-gray-200 text-xs">›</span>
+        <div class="flex items-center gap-1.5"><span id="ps-cal"  class="w-2.5 h-2.5 rounded-full bg-gray-200 transition-all duration-300"></span><span class="text-xs text-gray-500 font-medium">Calendar</span></div>
+        <span class="text-gray-200 text-xs">›</span>
+        <div class="flex items-center gap-1.5"><span id="ps-doc"  class="w-2.5 h-2.5 rounded-full bg-gray-200 transition-all duration-300"></span><span class="text-xs text-gray-500 font-medium">Doc</span></div>
+        <span class="text-gray-200 text-xs">›</span>
+        <div class="flex items-center gap-1.5"><span id="ps-mail" class="w-2.5 h-2.5 rounded-full bg-gray-200 transition-all duration-300"></span><span class="text-xs text-gray-500 font-medium">Email</span></div>
+      </div>
+      <span id="pipeLabel" class="text-xs font-semibold whitespace-nowrap" style="color:#9ca3af">Idle</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN GRID -->
+<div class="max-w-7xl mx-auto px-4 py-3 grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+  <!-- LEFT: inputs + pipeline -->
+  <div class="lg:col-span-3 flex flex-col gap-4">
+
+    <!-- Voice card -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+      <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">🎤 Voice Input</p>
+      <div id="micArea" class="flex flex-col items-center gap-3">
+        <button id="micBtn" onclick="toggleMic()"
+          class="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-2xl shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center">
+          🎙️
+        </button>
+        <div id="recStatus" class="hidden flex-col items-center gap-1">
+          <div class="rec-wave flex items-end gap-0.5 h-6">
+            <span class="h-2"></span><span></span><span></span><span></span><span class="h-2"></span>
+          </div>
+          <span class="text-xs text-indigo-600 font-semibold">Recording… <span id="recTime">0:00</span></span>
+        </div>
+        <p id="micHint" class="text-xs text-gray-400 text-center">Tap to record, tap again to stop</p>
+      </div>
+      <!-- after recording -->
+      <div id="recActions" class="hidden mt-3 flex gap-2">
+        <button onclick="playRecording()" class="flex-1 py-2 rounded-xl bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-100 transition">▶ Play</button>
+        <button onclick="sendVoice()"     class="flex-1 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-xs font-semibold shadow hover:opacity-90 transition">Send ↑</button>
+        <button onclick="discardRec()"    class="py-2 px-3 rounded-xl bg-red-50 border border-red-100 text-xs font-semibold text-red-500 hover:bg-red-100 transition">✕</button>
+      </div>
+    </div>
+
+    <!-- Text card -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+      <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">⌨️ Text Input</p>
+      <textarea id="textIn" rows="3" placeholder='e.g. "Book a KYC appointment for tomorrow morning"'
+        class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 text-gray-800 placeholder-gray-400 transition"></textarea>
+      <button onclick="sendText()"
+        class="mt-2 w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-bold shadow hover:opacity-90 transition active:scale-95">
+        Send Message →
+      </button>
+    </div>
+
+    <!-- Audio output -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+      <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">🔊 AI Voice</p>
+      <audio id="audioOut" controls class="w-full h-8 rounded-lg" style="accent-color:#6366f1"></audio>
+    </div>
+
+
+  </div>
+
+  <!-- CENTRE: chat -->
+  <div class="lg:col-span-6 flex flex-col gap-4">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col" style="height:420px">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">💬 Conversation</p>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400" style="box-shadow:0 0 0 3px #d1fae5"></span>
+          <span class="text-xs text-gray-400 font-medium">Active</span>
+        </div>
+      </div>
+      <div id="chatBox" class="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
+        <!-- welcome -->
+        <div class="flex gap-3 msg-in">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm flex-shrink-0">🤖</div>
+          <div class="max-w-[78%] bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+            <p class="text-sm text-gray-800 leading-relaxed">Hello! I'm your AdvisorAI assistant. I can help you book a consultation with a financial advisor. Type or speak to get started — or pick a topic above.</p>
+            <span class="text-xs text-gray-400 mt-1 block">Just now</span>
+          </div>
+        </div>
+      </div>
+      <!-- typing + spinner indicator (hidden) -->
+      <div id="typingRow" class="hidden px-4 pb-3">
+        <div class="flex gap-3 items-center">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm flex-shrink-0">🤖</div>
+          <div class="bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-3">
+            <!-- spinner -->
+            <svg class="animate-spin h-4 w-4 text-indigo-500 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+            <div class="dot-blink flex gap-1 items-center">
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+            </div>
+            <span id="spinnerLabel" class="text-xs text-gray-400 font-medium">Processing…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: booking + stack -->
+  <div class="lg:col-span-3 flex flex-col gap-4">
+
+    <!-- Booking card -->
+    <div class="bg-white rounded-2xl border-2 border-violet-100 shadow-sm p-4" style="box-shadow:0 4px 20px rgba(99,102,241,.07)">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-2 h-2 rounded-full bg-indigo-500" style="box-shadow:0 0 0 3px #ede9fe"></span>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">📅 Booking Details</p>
+      </div>
+      <div id="bookingPanel">
+        <div class="flex flex-col items-center justify-center py-8 gap-3 text-center">
+          <div class="w-12 h-12 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center text-2xl">📅</div>
+          <div>
+            <p class="text-sm font-semibold text-gray-600">No booking yet</p>
+            <p class="text-xs text-gray-400 mt-1">Complete a booking to see<br>your confirmation here.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Stack removed -->
+
+    <!-- Debug Log (hidden — accessible via JS dbLog) -->
+    <div id="debugLogPanel" style="display:none;" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mt-0">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">🪲 Debug Log</p>
+        <button onclick="clearDebugLog()" class="text-xs text-gray-400 hover:text-red-500 transition font-medium">Clear</button>
+      </div>
+      <div id="debugLog"
+           style="height:160px;overflow-y:auto;background:#0f172a;border-radius:8px;padding:10px;font-family:'Menlo','Courier New',monospace;font-size:11px;line-height:1.6;color:#94a3b8;">
+        <span style="color:#475569;">— waiting for activity —</span>
+      </div>
+    </div>
+
+</div><!-- /flex-1 -->
+
+<!-- FOOTER -->
+<footer style="background:#fff;border-top:1px solid #e5e7eb;padding:12px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;gap:16px;width:100%;">
+  <span style="font-size:11px;color:#9ca3af;white-space:nowrap;">© 2026 AdvisorAI · Ashish Kumar Sankhua · <a href="/license" target="_blank" style="color:#6366f1;font-weight:600;text-decoration:none;">MIT License</a></span>
+  <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+    <a href="https://www.sebi.gov.in" target="_blank" style="font-size:11px;color:#6366f1;font-weight:600;text-decoration:none;white-space:nowrap;">SEBI Resources ↗</a>
+    <span style="color:#d1d5db;font-size:11px;">|</span>
+    <div style="display:flex;align-items:center;gap:6px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:20px;padding:4px 12px;">
+      <span style="font-size:11px;color:#6b7280;font-weight:500;white-space:nowrap;">Voice:</span>
+      <button id="toggleSarvam" onclick="setProvider('sarvam')" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:none;cursor:pointer;transition:all .15s;">Sarvam AI</button>
+      <span style="color:#d1d5db;font-size:11px;">|</span>
+      <button id="toggleLocal" onclick="setProvider('local')" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:none;cursor:pointer;transition:all .15s;">Whisper+Parler</button>
+    </div>
+  </div>
+</footer>
+
+<script>
+const API = '';
+let sessionId = null;
+let mediaRecorder = null, audioChunks = [], recBlob = null, recTimer = null, recSecs = 0;
+let isRecording = false;
+
+// ── debug log ─────────────────────────────────────────────────────────────────
+const LOG_COLORS = {info:'#94a3b8', success:'#34d399', warning:'#fbbf24', error:'#f87171', system:'#818cf8'};
+function dbLog(msg, type='info'){
+  const box = document.getElementById('debugLog');
+  if(!box) return;
+  const ts = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const color = LOG_COLORS[type] || LOG_COLORS.info;
+  const line = document.createElement('div');
+  line.innerHTML = `<span style="color:#475569;">[${ts}]</span> <span style="color:${color};">${msg}</span>`;
+  // remove placeholder
+  const placeholder = box.querySelector('span');
+  if(placeholder && placeholder.style.color === '#475569' && box.children.length === 1) box.innerHTML = '';
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+function clearDebugLog(){
+  const box = document.getElementById('debugLog');
+  if(box) box.innerHTML = '<span style="color:#475569;">— log cleared —</span>';
+}
+function toast(msg, type='info', duration=3000){
+  const cfg = {
+    info:    {bg:'#6366f1', icon:'ℹ️'},
+    success: {bg:'#10b981', icon:'✅'},
+    warning: {bg:'#f59e0b', icon:'⚠️'},
+    error:   {bg:'#ef4444', icon:'❌'},
+    loading: {bg:'#8b5cf6', icon:'⏳'},
+  };
+  const c = cfg[type] || cfg.info;
+  const id = 'toast-' + Date.now();
+  const el = document.createElement('div');
+  el.id = id;
+  el.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;background:${c.bg};color:#fff;border-radius:12px;padding:0;min-width:260px;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,0.15);transform:translateX(120%);transition:transform .3s ease;overflow:hidden;font-family:Inter,sans-serif;cursor:pointer;`;
+  const barId = id+'-bar';
+  el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;"><span style="font-size:16px;">${c.icon}</span><span style="font-size:13px;font-weight:600;flex:1;line-height:1.4;">${msg}</span></div><div style="height:3px;background:rgba(255,255,255,0.25);"><div id="${barId}" style="height:100%;background:rgba(255,255,255,0.7);width:100%;transition:width ${duration}ms linear;"></div></div>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.transform='translateX(0)'; }));
+  setTimeout(()=>{ const b=document.getElementById(barId); if(b) b.style.width='0%'; }, 50);
+  const remove = ()=>{ el.style.transform='translateX(120%)'; setTimeout(()=>el.remove(),350); };
+  const t = setTimeout(remove, duration);
+  el.addEventListener('click',()=>{ clearTimeout(t); remove(); });
+  return { id, dismiss(){ clearTimeout(t); remove(); } };
+}
+
+// ── pipeline progress bar ─────────────────────────────────────────────────────
+const PIPE_STEPS = ['vad','stt','llm','tts','cal','doc','mail'];
+const PIPE_LABELS = {
+  vad:'Voice Detection', stt:'Whisper STT', llm:'LLM Processing',
+  tts:'Text-to-Speech', cal:'Google Calendar', doc:'Doc Report', mail:'Email Sent'
+};
+const TOTAL = PIPE_STEPS.length;
+
+function setPipe(id, state){
+  const dot = document.getElementById('ps-'+id);
+  if(dot){
+    if(state==='active')     { dot.style.background='#f59e0b'; dot.style.boxShadow='0 0 0 3px #fef3c7'; }
+    else if(state==='done')  { dot.style.background='#10b981'; dot.style.boxShadow='0 0 0 3px #d1fae5'; }
+    else if(state==='error') { dot.style.background='#ef4444'; dot.style.boxShadow='0 0 0 3px #fee2e2'; }
+    else                     { dot.style.background='#e5e7eb'; dot.style.boxShadow='none'; }
+  }
+  const bar = document.getElementById('pipeBar');
+  const lbl = document.getElementById('pipeLabel');
+  const idx = PIPE_STEPS.indexOf(id);
+  if(bar){
+    if(state==='active') bar.style.width = Math.round((idx/TOTAL)*100)+'%';
+    else if(state==='done') bar.style.width = Math.round(((idx+1)/TOTAL)*100)+'%';
+    else if(state==='error') bar.style.background = '#ef4444';
+  }
+  if(!lbl) return;
+  if(state==='active'){ lbl.textContent=PIPE_LABELS[id]+'…'; lbl.style.color='#f59e0b'; }
+  else if(state==='done' && id==='mail'){ lbl.textContent='✓ All done'; lbl.style.color='#10b981'; }
+  else if(state==='error'){ lbl.textContent='✗ '+PIPE_LABELS[id]; lbl.style.color='#ef4444'; }
+}
+function resetPipe(){
+  PIPE_STEPS.forEach(s => setPipe(s,'idle'));
+  const bar = document.getElementById('pipeBar');
+  const lbl = document.getElementById('pipeLabel');
+  if(bar){ bar.style.width='0%'; bar.style.background='linear-gradient(90deg,#f59e0b,#10b981)'; }
+  if(lbl){ lbl.textContent='Idle'; lbl.style.color='#9ca3af'; }
+}
+function applyMcpStatus(mcp){
+  if(!mcp) return;
+  if(mcp.calendar){ setPipe('cal', mcp.calendar==='ok'?'done':'error'); toast(mcp.calendar==='ok'?'Google Calendar event created':'Calendar booking failed', mcp.calendar==='ok'?'success':'error'); dbLog(mcp.calendar==='ok'?'✓ Google Calendar event created':'✗ Calendar booking failed', mcp.calendar==='ok'?'success':'error'); }
+  if(mcp.doc){      setPipe('doc', mcp.doc==='ok'?'done':'error');      toast(mcp.doc==='ok'?'Doc report appended':'Doc update failed', mcp.doc==='ok'?'success':'error');                         dbLog(mcp.doc==='ok'?'✓ Doc report appended to Google Docs':'✗ Doc update failed', mcp.doc==='ok'?'success':'error'); }
+  if(mcp.mail){     setPipe('mail', mcp.mail==='ok'?'done':'error');    toast(mcp.mail==='ok'?'Confirmation email sent':'Email failed', mcp.mail==='ok'?'success':'error');                         dbLog(mcp.mail==='ok'?'✓ Confirmation email sent via Resend':'✗ Email delivery failed', mcp.mail==='ok'?'success':'error'); }
+}
+
+// ── chat ──────────────────────────────────────────────────────────────────────
+function addMsg(role, text, badge=''){
+  const box = document.getElementById('chatBox');
+  const ts  = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  const div = document.createElement('div');
+  div.className = 'msg-in flex gap-3' + (role==='user' ? ' flex-row-reverse' : '');
+
+  const avatarUser = `<div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm flex-shrink-0">👤</div>`;
+  const avatarBot  = `<div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm flex-shrink-0">🤖</div>`;
+
+  const badgeHtml = badge ? `<span class="ml-2 text-xs font-bold px-2 py-0.5 rounded-full ${role==='user'?'bg-white/20 text-white':'bg-violet-100 text-violet-700'}">${badge}</span>` : '';
+
+  const bubble = role === 'user'
+    ? `<div class="max-w-[78%] bg-gradient-to-br from-indigo-500 to-violet-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">
+         <p class="text-sm leading-relaxed">${text}${badgeHtml}</p>
+         <span class="text-xs text-white/60 mt-1 block">${ts}</span>
+       </div>`
+    : `<div class="max-w-[78%] bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+         <p class="text-sm text-gray-800 leading-relaxed">${text}</p>
+         <span class="text-xs text-gray-400 mt-1 block">${ts}</span>
+       </div>`;
+
+  div.innerHTML = (role==='user' ? '' : avatarBot) + bubble + (role==='user' ? avatarUser : '');
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function addSystem(text){
+  const box = document.getElementById('chatBox');
+  const div = document.createElement('div');
+  div.className = 'msg-in flex justify-center';
+  div.innerHTML = `<div class="bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium px-4 py-1.5 rounded-full">${text}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function showTyping(label='Processing…'){
+  document.getElementById('spinnerLabel').textContent = label;
+  document.getElementById('typingRow').classList.remove('hidden');
+}
+function hideTyping(){ document.getElementById('typingRow').classList.add('hidden'); }
+
+// ── booking panel ─────────────────────────────────────────────────────────────
+function showBooking(html, meetLink){
+  if(!html || !html.trim()) return;
+  // If the server returned a real meet_link, inject it over the placeholder
+  if(meetLink){
+    html = html.replace(/MEET_LINK_PLACEHOLDER/g, meetLink);
+  }
+  document.getElementById('bookingPanel').innerHTML = html;
+}
+
+// ── audio playback ────────────────────────────────────────────────────────────
+function playAudio(b64){
+  if(!b64) return;
+  dbLog('TTS synthesis complete — loading audio…', 'info');
+  setPipe('tts','active');
+  const tAudio = toast('🔊 Loading voice response…', 'loading', 20000);
+  const audio = document.getElementById('audioOut');
+  audio.src = 'data:audio/wav;base64,' + b64;
+  audio.oncanplaythrough = () => {
+    tAudio.dismiss();
+    toast('▶ Playing AI response', 'success', 2000);
+    dbLog('▶ Audio ready — playing response', 'success');
+    audio.play().catch(()=>{});
+    setPipe('tts','done');
+  };
+  audio.onerror = () => tAudio.dismiss();
+  setTimeout(()=>{ if(audio.paused){ tAudio.dismiss(); audio.play().catch(()=>{}); setPipe('tts','done'); } }, 4000);
+}
+
+// ── text send ─────────────────────────────────────────────────────────────────
+async function sendText(){
+  const inp = document.getElementById('textIn');
+  const msg = inp.value.trim();
+  if(!msg) return;
+  inp.value = '';
+  addMsg('user', msg, '⌨️ TEXT');
+  dbLog(`→ Text input: "${msg.slice(0,60)}${msg.length>60?'…':''}"`, 'info');
+  showTyping('Thinking…'); setPipe('llm','active');
+  const t = toast('🧠 Processing…', 'loading', 30000);
+  try{
+    const r = await fetch(API+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,session_id:sessionId})});
+    const d = await r.json();
+    t.dismiss();
+    sessionId = d.session_id;
+    hideTyping();
+    addMsg('agent', d.response);   // show text immediately
+    setPipe('llm','done');
+    dbLog(`← LLM response: "${d.response.slice(0,60)}${d.response.length>60?'…':''}"`, 'success');
+    toast('✅ Response ready', 'success', 1500);
+    playAudio(d.audio_b64);        // audio loads async after text shown
+    showBooking(d.booking_html, d.meet_link);
+    applyMcpStatus(d.mcp_status);
+  }catch(e){
+    t.dismiss(); hideTyping(); addMsg('agent','Something went wrong. Please try again.'); resetPipe();
+    toast('Request failed — check server', 'error');
+  }
+}
+
+// ── topic shortcut ────────────────────────────────────────────────────────────
+function pickTopic(name){
+  document.getElementById('textIn').value = `I want to book an appointment for ${name}`;
+  sendText();
+}
+
+// ── mic recording ─────────────────────────────────────────────────────────────
+function showRecActions(show){
+  document.getElementById('recActions').style.display = show ? 'flex' : 'none';
+}
+
+async function toggleMic(){
+  if(isRecording){ stopRec(); return; }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = []; recBlob = null;
+    mediaRecorder.ondataavailable = e => { if(e.data.size>0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      recBlob = new Blob(audioChunks, {type:'audio/webm'});
+      showRecActions(true);
+      dbLog(`✓ Recording saved (${audioChunks.length} chunks)`, 'info');
+      toast('Recording ready — play, send or discard', 'info', 4000);
+    };
+    mediaRecorder.start(100);
+    isRecording = true; recSecs = 0;
+    showRecActions(false);
+    const btn = document.getElementById('micBtn');
+    btn.className = 'w-16 h-16 rounded-full bg-red-500 text-white text-2xl shadow-lg pulse-ring flex items-center justify-center cursor-pointer';
+    btn.textContent = '⏹';
+    document.getElementById('recStatus').style.display = 'flex';
+    document.getElementById('micHint').textContent = 'Recording… tap to stop';
+    recTimer = setInterval(()=>{
+      recSecs++;
+      const m=Math.floor(recSecs/60), s=recSecs%60;
+      document.getElementById('recTime').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+  }catch(e){ toast('Microphone access denied — allow in browser settings', 'error', 5000); }
+}
+
+function stopRec(){
+  if(mediaRecorder && isRecording){ mediaRecorder.stop(); mediaRecorder.stream.getTracks().forEach(t=>t.stop()); }
+  isRecording = false; clearInterval(recTimer);
+  const btn = document.getElementById('micBtn');
+  btn.className = 'w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-2xl shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center cursor-pointer';
+  btn.textContent = '🎙️';
+  document.getElementById('recStatus').style.display = 'none';
+  document.getElementById('micHint').textContent = 'Tap to record, tap again to stop';
+  toast('Recording stopped', 'info', 2000);
+}
+
+function playRecording(){
+  if(!recBlob){ toast('No recording to play', 'warning'); return; }
+  new Audio(URL.createObjectURL(recBlob)).play();
+  toast('▶ Playing recording…', 'info', 3000);
+}
+
+function discardRec(){
+  recBlob = null; showRecActions(false);
+  toast('Recording discarded', 'warning', 2000);
+}
+
+async function sendVoice(){
+  if(!recBlob){ toast('No recording — please record first', 'warning'); return; }
+  showRecActions(false);
+  showTyping('Transcribing voice…');
+  setPipe('vad','active');
+  dbLog('⚙️ Sending voice to server…', 'info');
+  const t1 = toast('⚙️ Processing voice…', 'loading', 30000);
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const b64 = reader.result.split(',')[1];
+    setPipe('vad','done'); setPipe('stt','active');
+    const t2 = toast('🎤 Transcribing with Whisper…', 'loading', 30000);
+    try{
+      const r = await fetch(API+'/api/voice',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio_base64:b64,session_id:sessionId})});
+      const d = await r.json();
+      t1.dismiss(); t2.dismiss();
+      sessionId = d.session_id;
+      setPipe('stt','done');
+      if(d.error==='no_speech'){
+        hideTyping(); resetPipe();
+        dbLog('⚠ No speech detected in audio', 'warning');
+        addSystem('No speech detected — please speak clearly and try again.');
+        toast('No speech detected', 'warning'); return;
+      }
+      if(d.transcript){
+        addMsg('user', d.transcript, '🎤 VOICE');
+        dbLog(`🎤 Transcript: "${d.transcript.slice(0,60)}${d.transcript.length>60?'…':''}"`, 'success');
+        toast(`📝 "${d.transcript.slice(0,50)}${d.transcript.length>50?'…':''}"`, 'success', 3500);
+      }
+      setPipe('llm','done');
+      hideTyping();
+      if(d.response){ addMsg('agent', d.response); dbLog(`← LLM: "${d.response.slice(0,60)}${d.response.length>60?'…':''}"`, 'success'); }
+      playAudio(d.audio_b64);                       // audio loads async
+      showBooking(d.booking_html, d.meet_link);
+      applyMcpStatus(d.mcp_status);
+    }catch(e){
+      t1.dismiss(); t2.dismiss();
+      hideTyping(); resetPipe();
+      addMsg('agent','Voice processing failed. Please try again.');
+      toast('Voice processing failed', 'error');
+    }
+  };
+  reader.readAsDataURL(recBlob);
+  recBlob = null;
+}
+
+// ── reset ─────────────────────────────────────────────────────────────────────
+async function resetSession(){
+  try{
+    const r = await fetch(API+'/api/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'',session_id:sessionId})});
+    const d = await r.json();
+    sessionId = d.session_id;
+  }catch(e){}
+  document.getElementById('chatBox').innerHTML = '';
+  document.getElementById('bookingPanel').innerHTML = `
+    <div class="flex flex-col items-center justify-center py-8 gap-3 text-center">
+      <div class="w-12 h-12 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center text-2xl">📅</div>
+      <div><p class="text-sm font-semibold text-gray-600">No booking yet</p>
+      <p class="text-xs text-gray-400 mt-1">Complete a booking to see<br>your confirmation here.</p></div>
+    </div>`;
+  resetPipe();
+  addSystem('Session reset — ready for a new booking');
+  dbLog('↺ Session reset', 'system');
+}
+
+// Enter key on textarea
+document.getElementById('textIn').addEventListener('keydown', e => {
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendText(); }
+});
+// init — avoid Tailwind hidden class conflicts
+showRecActions(false);
+document.getElementById('recStatus').style.display = 'none';
+
+// ── voice provider toggle ─────────────────────────────────────────────────────
+let currentProvider = 'sarvam';
+
+function _renderToggle(p){
+  const s = document.getElementById('toggleSarvam');
+  const l = document.getElementById('toggleLocal');
+  if(!s || !l) return;
+  if(p === 'sarvam'){
+    s.style.cssText = 'font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:none;cursor:pointer;background:#6366f1;color:#fff;';
+    l.style.cssText = 'font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:none;cursor:pointer;background:transparent;color:#9ca3af;';
+  } else {
+    l.style.cssText = 'font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:none;cursor:pointer;background:#6366f1;color:#fff;';
+    s.style.cssText = 'font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:none;cursor:pointer;background:transparent;color:#9ca3af;';
+  }
+}
+
+async function setProvider(p){
+  if(p === currentProvider) return;
+  const label = p === 'sarvam' ? 'Sarvam AI' : 'Whisper + ParlerTTS';
+  const t = toast(`Switching to ${label}…`, 'loading', 10000);
+  try{
+    const r = await fetch('/api/provider', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({provider: p})
+    });
+    const d = await r.json();
+    t.dismiss();
+    currentProvider = d.provider;
+    _renderToggle(currentProvider);
+    dbLog(`🔄 Voice provider → ${currentProvider}`, 'system');
+    toast(`✓ Now using ${label}`, 'success', 3000);
+  } catch(e){
+    t.dismiss();
+    toast('Failed to switch provider', 'error');
+  }
+}
+
+// load current provider on page load
+fetch('/api/provider').then(r=>r.json()).then(d=>{
+  currentProvider = d.provider || 'sarvam';
+  _renderToggle(currentProvider);
+}).catch(()=>_renderToggle('sarvam'));
+</script>
+</body>
+</html>

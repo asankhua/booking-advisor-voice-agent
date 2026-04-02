@@ -1,0 +1,40 @@
+# ── Web framework ─────────────────────────────────────────────────────────────
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+python-multipart>=0.0.6
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# ── Audio decode (browser webm/opus → numpy) ──────────────────────────────────
+pydub>=0.25.1
+# pydub requires ffmpeg installed on the system:
+#   macOS:  brew install ffmpeg
+#   Ubuntu: apt-get install ffmpeg
+#   Docker: see Dockerfile
+
+# ── Voice — local fallback (Whisper + ParlerTTS) ──────────────────────────────
+torch>=2.0.0
+torchaudio>=2.0.0
+transformers>=4.36.0
+parler-tts>=0.1.0
+soundfile>=0.12.1
+
+# ── Voice — Sarvam AI (default, cloud) ────────────────────────────────────────
+# No extra package needed — uses requests (already above)
+# Get API key: https://console.sarvam.ai
+
+# ── VAD ───────────────────────────────────────────────────────────────────────
+# Silero VAD is loaded via torch.hub — no pip install needed
+
+# ── LLM ───────────────────────────────────────────────────────────────────────
+groq>=0.4.0
+
+# ── Google APIs (MCP tools) ───────────────────────────────────────────────────
+google-auth>=2.23.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.2.0
+google-api-python-client>=2.100.0
+
+# ── Email ─────────────────────────────────────────────────────────────────────
+resend>=0.6.0

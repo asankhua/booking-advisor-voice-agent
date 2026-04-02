@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "timezone": "Asia/Kolkata",
+  "slots": [
+    {
+      "id": "slot_001",
+      "datetime": "2026-03-30T10:00:00+05:30",
+      "duration_minutes": 30,
+      "status": "available",
+      "hold_info": null
+    },
+    {
+      "id": "slot_002",
+      "datetime": "2026-03-30T14:00:00+05:30",
+      "duration_minutes": 30,
+      "status": "available",
+      "hold_info": null
+    },
+    {
+      "id": "slot_003",
+      "datetime": "2026-03-31T10:00:00+05:30",
+      "duration_minutes": 30,
+      "status": "available",
+      "hold_info": null
+    },
+    {
+      "id": "slot_004",
+      "datetime": "2026-03-31T14:00:00+05:30",
+      "duration_minutes": 30,
+      "status": "available",
+      "hold_info": null
+    },
+    {
+      "id": "slot_005",
+      "datetime": "2026-04-01T10:00:00+05:30",
+      "duration_minutes": 30,
+      "status": "available",
+      "hold_info": null
+    },
+    {
+      "id": "slot_006",
+      "datetime": "2026-04-01T14:00:00+05:30",
+      "duration_minutes": 30,
+      "status": "available",
+      "hold_info": null
+    },
+    {
+      "id": "slot_007",
+      "datetime": "2026-04-02T10:00:00+05:30",
+      "duration_minutes": 30,
+      "status": "available",
+      "hold_info": null
+    },
+    {
+      "id": "slot_008",
+      "datetime": "2026-04-02T14:00:00+05:30",
+      "duration_minutes": 30,
+      "status": "available",
+      "hold_info": null
+    },
+    {
+      "id": "slot_009",
+      "datetime": "2026-04-03T10:00:00+05:30",
+      "duration_minutes": 30,
+      "status": "available",
+      "hold_info": null
+    },
+    {
+      "id": "slot_010",
+      "datetime": "2026-04-03T14:00:00+05:30",
+      "duration_minutes": 30,
+      "status": "available",
+      "hold_info": null
+    }
+  ]
+}

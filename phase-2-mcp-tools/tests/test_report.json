@@ -1,0 +1,108 @@
+{
+  "summary": {
+    "total": 12,
+    "passed": 9,
+    "failed": 3,
+    "warnings": 0,
+    "avg_latency_ms": 398.6981213092804,
+    "timestamp": "2026-03-30T05:59:41.092641"
+  },
+  "details": [
+    {
+      "timestamp": "2026-03-30T05:59:38.790698",
+      "phase": "Phase 1",
+      "component": "VAD",
+      "status": "PASS",
+      "message": "Silero VAD initialized",
+      "latency_ms": 3168.812036514282
+    },
+    {
+      "timestamp": "2026-03-30T05:59:38.796653",
+      "phase": "Phase 1",
+      "component": "STT",
+      "status": "PASS",
+      "message": "Sarvam STT client initialized",
+      "latency_ms": 5.906820297241211
+    },
+    {
+      "timestamp": "2026-03-30T05:59:38.797925",
+      "phase": "Phase 1",
+      "component": "TTS",
+      "status": "PASS",
+      "message": "Sarvam TTS client initialized",
+      "latency_ms": 1.2440681457519531
+    },
+    {
+      "timestamp": "2026-03-30T05:59:38.804376",
+      "phase": "Phase 2",
+      "component": "MCP Server",
+      "status": "PASS",
+      "message": "Server running at http://localhost:8000",
+      "latency_ms": 5.68079948425293
+    },
+    {
+      "timestamp": "2026-03-30T05:59:38.807526",
+      "phase": "Phase 2",
+      "component": "Calendar",
+      "status": "FAIL",
+      "message": "Status: 404",
+      "latency_ms": null
+    },
+    {
+      "timestamp": "2026-03-30T05:59:38.810994",
+      "phase": "Phase 2",
+      "component": "Notes",
+      "status": "FAIL",
+      "message": "Status: 422",
+      "latency_ms": null
+    },
+    {
+      "timestamp": "2026-03-30T05:59:38.814966",
+      "phase": "Phase 2",
+      "component": "Email",
+      "status": "FAIL",
+      "message": "Status: 422",
+      "latency_ms": null
+    },
+    {
+      "timestamp": "2026-03-30T05:59:38.818728",
+      "phase": "Phase 3",
+      "component": "Intent Classifier",
+      "status": "PASS",
+      "message": "Module loaded",
+      "latency_ms": 3.6821365356445312
+    },
+    {
+      "timestamp": "2026-03-30T05:59:38.819868",
+      "phase": "Phase 3",
+      "component": "Topic Router",
+      "status": "PASS",
+      "message": "Module loaded",
+      "latency_ms": 1.1010169982910156
+    },
+    {
+      "timestamp": "2026-03-30T05:59:38.820697",
+      "phase": "Phase 3",
+      "component": "Response Formatter",
+      "status": "PASS",
+      "message": "Module loaded",
+      "latency_ms": 0.8001327514648438
+    },
+    {
+      "timestamp": "2026-03-30T05:59:38.823075",
+      "phase": "Phase 4",
+      "component": "PII Detector",
+      "status": "PASS",
+      "message": "PII detection working",
+      "latency_ms": 2.357959747314453
+    },
+    {
+      "timestamp": "2026-03-30T05:59:41.092112",
+      "phase": "Phase 4",
+      "component": "Gradio UI",
+      "status": "PASS",
+      "message": "Gradio module available",
+      "latency_ms": null
+    }
+  ]
+}
