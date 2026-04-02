@@ -22,11 +22,18 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
 
-          # Create temp workspace
-          mkdir -p /tmp/hf_sync
+          # Clone HF Space to temp location
+          cd /tmp
+          rm -rf hf_space
+          git clone https://user:${HF_TOKEN}@huggingface.co/spaces/ashishsankhua/Booking_Advisor_Voice_Agent hf_space
           
-          # Sync files to temp (exclude secrets and cache)
-          rsync -av --delete \
+          # Clean everything except .git
+          cd hf_space
+          find . -not -path "./.git/*" -not -path "./.git" -delete 2>/dev/null || true
+          
+          # Copy ALL files from GitHub repo (excluding secrets)
+          cd $GITHUB_WORKSPACE
+          rsync -av --no-perms \
             --exclude='.git' \
             --exclude='.gitattributes' \
             --exclude='.env' \
@@ -37,19 +44,11 @@ jobs:
             --exclude='.DS_Store' \
             --exclude='logs/' \
             --exclude='.cache' \
-            ./ /tmp/hf_sync/
-
-          # Clone HF Space fresh
-          cd /tmp
-          rm -rf hf_space
-          git clone --depth 1 https://user:${HF_TOKEN}@huggingface.co/spaces/ashishsankhua/Booking_Advisor_Voice_Agent hf_space
-
-          # Copy synced files into HF repo
-          cp -r hf_sync/* hf_space/ 2>/dev/null || true
-          cp -r hf_sync/.[!.]* hf_space/ 2>/dev/null || true
+            ./ /tmp/hf_space/
 
           # Commit and push to HF
-          cd hf_space
+          cd /tmp/hf_space
           git add -A
+          git status
           git diff --staged --quiet || git commit -m "Sync from GitHub: ${{ github.sha }}"
-          git push
+          git push origin main
