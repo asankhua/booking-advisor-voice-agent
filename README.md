@@ -1,3 +1,13 @@
+---
+title: Booking Advisor Voice Agent
+emoji: 🎙️
+colorFrom: indigo
+colorTo: violet
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🎙️ Booking Advisor Voice Agent
 
 AI-powered voice booking assistant for financial advisory appointments.  
