@@ -12,20 +12,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Pre-download HF models so container starts fast
-# Only downloaded when VOICE_PROVIDER=local; skipped for Sarvam (default)
-RUN python -c "
-import os
-if os.getenv('PREFETCH_HF_MODELS', 'false').lower() == 'true':
-    from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor
-    from parler_tts import ParlerTTSForConditionalGeneration, AutoTokenizer
-    AutoModelForSpeechSeq2Seq.from_pretrained('openai/whisper-base')
-    AutoProcessor.from_pretrained('openai/whisper-base')
-    ParlerTTSForConditionalGeneration.from_pretrained('parler-tts/parler-tts-mini-v1')
-    AutoTokenizer.from_pretrained('parler-tts/parler-tts-mini-v1')
-    print('HF models pre-fetched')
-else:
-    print('Skipping HF model prefetch (VOICE_PROVIDER=sarvam)')
-"
+# Only downloaded when PREFETCH_HF_MODELS=true; skipped for Sarvam (default)
+COPY scripts/prefetch_models.py /tmp/prefetch_models.py
+RUN python /tmp/prefetch_models.py
 
 # Copy application code
 COPY . .
