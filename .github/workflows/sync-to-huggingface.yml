@@ -23,7 +23,7 @@ jobs:
           git config --global user.name "GitHub Action"
 
           # Clone HF Space
-          git clone https://user:${HF_TOKEN}@huggingface.co/spaces/asankhua/advisor-voice-agent hf_space
+          git clone https://user:${HF_TOKEN}@huggingface.co/spaces/ashishsankhua/Booking_Advisor_Voice_Agent hf_space
 
           # Sync files (exclude secrets and cache)
           rsync -av --delete \
