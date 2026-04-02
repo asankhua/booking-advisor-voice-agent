@@ -3,7 +3,7 @@ name: Sync to Hugging Face Spaces
 on:
   push:
     branches: [main]
-  workflow_dispatch:   # allow manual trigger
+  workflow_dispatch:
 
 jobs:
   sync:
@@ -22,22 +22,31 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
 
-          # Clone HF Space
-          git clone https://user:${HF_TOKEN}@huggingface.co/spaces/ashishsankhua/Booking_Advisor_Voice_Agent hf_space
-
-          # Sync files (exclude secrets and cache)
+          # Create temp workspace
+          mkdir -p /tmp/hf_sync
+          
+          # Sync files to temp (exclude secrets and cache)
           rsync -av --delete \
             --exclude='.git' \
+            --exclude='.gitattributes' \
             --exclude='.env' \
             --exclude='config/google-credentials.json' \
             --exclude='config/google-token.json' \
             --exclude='__pycache__' \
             --exclude='*.pyc' \
             --exclude='.DS_Store' \
-            --exclude='logs/*.log' \
-            --exclude='logs/*.json' \
+            --exclude='logs/' \
             --exclude='.cache' \
-            ./ hf_space/
+            ./ /tmp/hf_sync/
+
+          # Clone HF Space fresh
+          cd /tmp
+          rm -rf hf_space
+          git clone --depth 1 https://user:${HF_TOKEN}@huggingface.co/spaces/ashishsankhua/Booking_Advisor_Voice_Agent hf_space
+
+          # Copy synced files into HF repo
+          cp -r hf_sync/* hf_space/ 2>/dev/null || true
+          cp -r hf_sync/.[!.]* hf_space/ 2>/dev/null || true
 
           # Commit and push to HF
           cd hf_space
