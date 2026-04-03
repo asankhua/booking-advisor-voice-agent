@@ -1,5 +1,3 @@
-https://github.com/user-attachments/assets/643afb0b-4654-4f11-8a01-a5bfe898095f
-
 ---
 title: Booking Advisor Voice Agent
 emoji: 🎙️
@@ -9,6 +7,9 @@ sdk: docker
 app_port: 7860
 pinned: false
 ---
+
+https://github.com/user-attachments/assets/643afb0b-4654-4f11-8a01-a5bfe898095f
+
 
 # Advisor Voice Agent
 
