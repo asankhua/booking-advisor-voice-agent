@@ -284,7 +284,7 @@ advisor-voice-agent/
 |-------------|--------|--------|-------|
 | **Production** | `7634ee1` | ✅ Ready | Environment variable based, secure for deployment |
 
-## Hugging face directory url - https://huggingface.co/spaces/ashishsankhua/Booking_Advisor_Voice_Agent/tree/main
+Hugging face directory url - https://huggingface.co/spaces/ashishsankhua/Booking_Advisor_Voice_Agent/tree/main
 
 ## License
 
