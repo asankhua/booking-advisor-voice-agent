@@ -282,7 +282,7 @@ advisor-voice-agent/
 
 | Environment | Commit | Status | Notes |
 |-------------|--------|--------|-------|
-| **Production** | `eb54bae` | ✅ Ready | Environment variable based, secure for deployment |
+| **Production** | `7634ee1` | ✅ Ready | Environment variable based, secure for deployment |
 
 ## License
 
